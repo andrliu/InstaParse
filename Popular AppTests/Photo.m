@@ -45,4 +45,23 @@
      }];
 }
 
++ (void) sortByDescending:(NSString *)reuqest withLimit:(int)number Completion:(sortPhotoBlock)complete
+{
+    PFQuery *query = [self query];
+    [query includeKey:reuqest];
+    [query orderByDescending:reuqest];
+    query.limit = number;
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
+     {
+         if (!error)
+         {
+             complete(objects,nil);
+         }
+         else
+         {
+             complete(nil,error);
+         }
+     }];
+}
+
 @end

@@ -22,10 +22,14 @@
 @dynamic followers;
 @dynamic followings;
 
--(void)setNameAndCanonicalName:(NSString *)name
+- (void)setNameAndCanonicalName:(NSString *)username
 {
-    self.name = name;
-    self.lowercaseName = [name lowercaseString];
+    self.name = username;
+    self.lowercaseName = [username lowercaseString];
+    self.memo = @"Newbie in the house!!!";
+    UIImage *image = [UIImage imageNamed:@"avatar"];
+    NSData *imageData = UIImageJPEGRepresentation(image, 0.1);
+    self.avatarData = imageData;
 }
 
 + (void)load

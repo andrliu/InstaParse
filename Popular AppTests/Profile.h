@@ -10,6 +10,8 @@
 #import <Parse/PFObject+Subclass.h>
 #import "Photo.h"
 
+typedef void(^createProfileBlock)(BOOL succeeded, NSError *error);
+
 @interface Profile : PFObject  <PFSubclassing>
 
 @property (nonatomic, strong) NSString *objectId;
@@ -20,6 +22,9 @@
 @property (nonatomic, strong) NSArray *followers;
 @property (nonatomic, strong) NSArray *followings;
 
--(void)setNameAndCanonicalName:(NSString *)name;
+- (void)setNameAndCanonicalName:(NSString *)username;
+
+
+
 
 @end

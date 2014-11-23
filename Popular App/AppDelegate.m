@@ -15,11 +15,10 @@
 
 @implementation AppDelegate
 
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
-    [Parse setApplicationId:@"ZSDelA0ymCTwULzZJ9ShKLgMbtRexOjA6mMq9prl"
-                  clientKey:@"dWbC11LlTCjvggadRSUrAjEukS9gBDNS4W1eQL6C"];
+    [Parse setApplicationId:@"tp5GJt2k1tN2JVqKIMXKyr6puOpXWHni4LaSTCSO"
+                  clientKey:@"11T4RU77VwGR0gMcKE5qeGx9GWXHQ2wBFRm3LtSS"];
 
     [[UINavigationBar appearance] setBarTintColor:[UIColor colorWithRed:185.0/255.0 green:237.0/255.0 blue:239.0/255.0 alpha:0.0]];
 
