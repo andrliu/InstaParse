@@ -53,7 +53,7 @@
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     UIImage *pickerImage = info[UIImagePickerControllerEditedImage];
-    NSData *imageData = UIImageJPEGRepresentation(pickerImage, 0.2);
+    NSData *imageData = UIImageJPEGRepresentation(pickerImage, 0.1);
     self.photo = [Photo object];
     self.photo.imageData = imageData;
     User *user = [User currentUser];

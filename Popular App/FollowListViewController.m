@@ -45,16 +45,8 @@
     Profile *profile = self.arrayOfFollowList[indexPath.row];
     cell.textLabel.text = profile.name;
     cell.detailTextLabel.text = profile.memo;
-    if (profile.avatarData)
-    {
-        UIImage *image = [UIImage imageWithData:profile.avatarData];
-        cell.imageView.image = image;
-    }
-    else
-    {
-        UIImage *image = [UIImage imageNamed:@"avatar"];
-        cell.imageView.image = image;
-    }
+    UIImage *image = [UIImage imageWithData:profile.avatarData];
+    cell.imageView.image = image;
     return cell;
 }
 

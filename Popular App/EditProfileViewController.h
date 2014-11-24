@@ -7,8 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Profile.h"
-#import "User.h"
+
+@class Profile;
+@class User;
 
 @interface EditProfileViewController : UIViewController
 

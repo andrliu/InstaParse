@@ -13,7 +13,6 @@
 #import "EditProfileViewController.h"
 #import <ParseUI/ParseUI.h>
 #import "User.h"
-#import "Profile.h"
 #import "Photo.h"
 
 @interface ProfileViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
@@ -24,8 +23,6 @@
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UIButton *followingButton;
 @property (weak, nonatomic) IBOutlet UIButton *followerButton;
-@property NSString *followersCount;
-@property NSString *followingsCount;
 @property Profile *profile;
 @property Photo *photo;
 
@@ -62,20 +59,12 @@
             self.profile = (Profile *)object;
             self.navigationItem.title = self.profile.name;
             self.descriptionTextView.text = self.profile.memo;
-            if (self.profile.avatarData)
-            {
-                UIImage *image = [UIImage imageWithData:self.profile.avatarData];
-                self.imageView.image = image;
-            }
-            else
-            {
-                UIImage *image = [UIImage imageNamed:@"avatar"];
-                self.imageView.image = image;
-            }
-            self.followersCount = [NSString stringWithFormat:@"Fers:%lu",(unsigned long)self.profile.followers.count];
-            [self.followerButton setTitle:self.followersCount forState:UIControlStateNormal];
-            self.followingsCount = [NSString stringWithFormat:@"Fings:%lu",(unsigned long)self.profile.followings.count];
-            [self.followingButton setTitle:self.followingsCount forState:UIControlStateNormal];
+            UIImage *image = [UIImage imageWithData:self.profile.avatarData];
+            self.imageView.image = image;
+            [self.followerButton setTitle:[NSString stringWithFormat:@"Fers:%lu",(unsigned long)self.profile.followers.count]
+                                 forState:UIControlStateNormal];
+            [self.followingButton setTitle:[NSString stringWithFormat:@"Fings:%lu",(unsigned long)self.profile.followings.count]
+                                  forState:UIControlStateNormal];
         }
         else
         {
@@ -88,14 +77,12 @@
 - (void)reloadPhoto
 {
     User *user = [User currentUser];
-    PFQuery *photoQuery = [Photo query];
-    [photoQuery whereKey:@"profile" equalTo:user[@"profile"]];
-    [photoQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
-    {
+    [Photo searchPhotoByKey:@"profile" equalTo:user[@"profile"] Completion:^(NSArray *objects, NSError *error) {
         if (!error)
         {
             self.arrayOfPhoto = objects;
-            [self.photoButton setTitle:[NSString stringWithFormat:@"Photo:%lu",(unsigned long)self.arrayOfPhoto.count] forState:UIControlStateNormal];
+            [self.photoButton setTitle:[NSString stringWithFormat:@"Photo:%lu",(unsigned long)self.arrayOfPhoto.count]
+                              forState:UIControlStateNormal];
             [self.collectionView reloadData];
         }
         else

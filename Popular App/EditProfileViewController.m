@@ -7,6 +7,8 @@
 //
 
 #import "EditProfileViewController.h"
+#import "Profile.h"
+#import "User.h"
 
 @interface EditProfileViewController () <UITextFieldDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 
@@ -24,11 +26,6 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
     [self reloadProfile];
 }
 
@@ -37,16 +34,8 @@
 {
     self.nameTextField.text = self.profile.name;
     self.descriptionTextField.text = self.profile.memo;
-    if (self.profile.avatarData)
-    {
-        UIImage *image = [UIImage imageWithData:self.profile.avatarData];
-        self.imageView.image = image;
-    }
-    else
-    {
-        UIImage *image = [UIImage imageNamed:@"avatar"];
-        self.imageView.image = image;
-    }
+    UIImage *image = [UIImage imageWithData:self.profile.avatarData];
+    self.imageView.image = image;
     self.emailTextField.text = self.user.email;
     self.passwordTextField.text = self.user.password;
 }
@@ -75,7 +64,7 @@
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     UIImage *pickerImage = info[UIImagePickerControllerEditedImage];
-    NSData *imageData = UIImageJPEGRepresentation(pickerImage, 0.2);
+    NSData *imageData = UIImageJPEGRepresentation(pickerImage, 0.1);
     self.profile.avatarData = imageData;
     [self.profile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error)
      {

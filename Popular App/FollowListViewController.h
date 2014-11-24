@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Profile.h"
+
+@class Profile;
 
 @interface FollowListViewController : UIViewController
 
