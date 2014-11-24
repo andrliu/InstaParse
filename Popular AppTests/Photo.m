@@ -64,4 +64,24 @@
         }];
 }
 
++ (void) searchPhotoByKey:(NSString *)key containedIn:(id)object includeKey:(NSString *)iKey withOrder:(NSString *)order andLimit:(int)number Completion:(searchFollowPhotoBlock)complete
+{
+    PFQuery *photosQuery = [self query];
+    [photosQuery includeKey:iKey];
+    [photosQuery orderByDescending:order];
+    [photosQuery whereKey:key containedIn:object];
+    photosQuery.limit = number;
+    [photosQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
+     {
+        if (!error)
+        {
+            complete(objects,nil);
+        }
+        else
+        {
+            complete(nil,error);
+        }
+    }];
+}
+
 @end

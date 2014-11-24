@@ -60,4 +60,22 @@
      }];
 }
 
++ (void) searchCurrentProfileWithID:(NSString *)ID includeKey:(NSString *)iKey Completion:(searchCurrentProfileBlock)complete;
+{
+    PFQuery *query = [self query];
+    [query includeKey:iKey];
+    [query getObjectInBackgroundWithId:ID block:^(PFObject *object, NSError *error)
+     {
+         if (!error)
+         {
+             Profile *profile = (Profile *)object;
+             complete(profile,nil);
+         }
+         else
+         {
+             complete(nil,error);
+         }
+     }];
+}
+
 @end

@@ -7,9 +7,7 @@
 //
 
 #import "CameraViewController.h"
-#import "Photo.h"
 #import "Tag.h"
-#import "Profile.h"
 #import "User.h"
 
 @interface CameraViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate>
@@ -156,7 +154,6 @@
         }
     }];
 }
-
 
 //MARK: set image, tag, and description to default
 - (void)defaultDisplay

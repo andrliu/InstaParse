@@ -9,7 +9,10 @@
 #import <Parse/Parse.h>
 #import <Parse/PFObject+Subclass.h>
 
+@class Profile;
+
 typedef void(^searchProfileBlock)(NSArray *objects, NSError *error);
+typedef void(^searchCurrentProfileBlock)(Profile *profile, NSError *error);
 
 @interface Profile : PFObject  <PFSubclassing>
 
@@ -24,5 +27,7 @@ typedef void(^searchProfileBlock)(NSArray *objects, NSError *error);
 - (void)setNameAndCanonicalName:(NSString *)username;
 
 + (void) searchProfilesWithSearchText:(NSString *)searchText withOrderByKey:(NSString *)orderKey Completion:(searchProfileBlock)complete;
+
++ (void) searchCurrentProfileWithID:(NSString *)ID includeKey:(NSString *)iKey Completion:(searchCurrentProfileBlock)complete;
 
 @end

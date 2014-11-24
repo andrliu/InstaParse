@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Photo.h"
+
+@class Photo;
 
 @interface RootDetailViewController : UIViewController
 
