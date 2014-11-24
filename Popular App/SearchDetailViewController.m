@@ -13,7 +13,6 @@
 #import "User.h"
 #import <Parse/Parse.h>
 
-
 @interface SearchDetailViewController () <UICollectionViewDataSource, UICollectionViewDelegate>
 @property (strong, nonatomic) IBOutlet UIButton *followingButton;
 @property (weak, nonatomic) IBOutlet UIButton *photoCountButton;
@@ -22,7 +21,6 @@
 @property (strong, nonatomic) IBOutlet UITextView *detailTextView;
 @property (strong, nonatomic) NSArray *collectionViewArray;
 @property (strong, nonatomic) IBOutlet UICollectionView *collectionView;
-@property NSString *followingsCount;
 @property Profile *currentUserProfile;
 
 @end
@@ -32,38 +30,24 @@
 -(void)viewDidLoad
 {
     [super viewDidLoad];
-    self.collectionViewArray = @[];
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-
     [self updateCurrentUserProfile];
-
-    [self loadImagesFromProfile:self.profile];
-
+    [self reloadPhoto];
     self.navigationItem.title = self.profile.name;
-    if (self.profile.avatarData)
-    {
-        UIImage *image = [UIImage imageWithData:self.profile.avatarData];
-        self.detailImageView.image = image;
-    }
-    else
-    {
-        UIImage *image = [UIImage imageNamed:@"avatar"];
-        self.detailImageView.image = image;
-    }
+    UIImage *image = [UIImage imageWithData:self.profile.avatarData];
+    self.detailImageView.image = image;
     self.detailTextView.text = self.profile.memo;
-
-    [self.fersCountButton setTitle:[NSString stringWithFormat:@"Fers:%lu",(unsigned long)self.profile.followers.count] forState:UIControlStateNormal];
-
-    self.followingsCount = [NSString stringWithFormat:@"Fings:%lu",(unsigned long)self.profile.followings.count];
-
-    [self.followingButton setTitle:self.followingsCount forState:UIControlStateNormal];
-
+    [self.fersCountButton setTitle:[NSString stringWithFormat:@"Fers:%lu",(unsigned long)self.profile.followers.count]
+                          forState:UIControlStateNormal];
+    [self.followingButton setTitle:[NSString stringWithFormat:@"Fings:%lu",(unsigned long)self.profile.followings.count]
+                          forState:UIControlStateNormal];
 }
 
+//MARK: custom update current user method
 - (void)updateCurrentUserProfile
 {
     User *user = [User currentUser];
@@ -78,68 +62,48 @@
              {
                  [array addObject:object.objectId];
              }
-             if ([array containsObject:self.currentUserProfile.objectId])
+             if ([array containsObject:self.currentUserProfile.objectId] ||
+                 [self.profile.objectId isEqual: self.currentUserProfile.objectId])
              {
-                 [self.followingButton setBackgroundImage:[UIImage imageNamed:@"post"] forState:UIControlStateNormal];
-
-                 self.followingButton.enabled = NO;
-             }
-
-             if ([self.profile.objectId isEqual: self.currentUserProfile.objectId])
-             {
-                 [self.followingButton setBackgroundImage:[UIImage imageNamed:@"post"] forState:UIControlStateNormal];
-                 self.followingButton.enabled = NO;
+                 [self disableFollowingButton];
              }
          }
          else
          {
-             [self errorAlertWindow:error.localizedDescription];
+            [self error:error];
          }
      }];
 }
 
-
-- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
+- (void)disableFollowingButton
 {
-    return self.collectionViewArray.count;
+    [self.followingButton setBackgroundImage:[UIImage imageNamed:@"post"] forState:UIControlStateNormal];
+    self.followingButton.enabled = NO;
 }
 
-- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
+//MARK: custom reload method
+- (void)reloadPhoto
 {
-    PhotoCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cell" forIndexPath:indexPath];
-
-    NSData *data = [self.collectionViewArray[indexPath.item] imageData];
-
-    cell.imageView.image = [UIImage imageWithData:data];
-    
-    return cell;
-}
-
--(void)loadImagesFromProfile:(Profile *)profile
-{
-    PFQuery *query = [Photo query];
-    [query whereKey:@"profile" equalTo:profile];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
-    {
-        if (error)
-        {
-            [self errorAlertWindow:error.localizedDescription];
-        }
-        else
-        {
-            self.collectionViewArray = objects;
-            [self.photoCountButton setTitle:[NSString stringWithFormat:@"Photos: %lu",(unsigned long)self.collectionViewArray.count] forState:UIControlStateNormal];
-            [self.collectionView reloadData];
-        }
-
-    }];
-
-
+    [Photo searchPhotoByKey:@"profile" equalTo:self.profile Completion:^(NSArray *objects, NSError *error)
+     {
+         if (!error)
+         {
+             self.collectionViewArray = objects;
+             [self.photoCountButton setTitle:[NSString stringWithFormat:@"Photos: %lu",(unsigned long)self.collectionViewArray.count]
+                                    forState:UIControlStateNormal];
+             [self.collectionView reloadData];
+         }
+         else
+         {
+             [self error:error];
+         }
+     }];
 }
 
 - (IBAction)followingOnButtonPressed:(UIButton *)sender
 {
-    PFObject *followingObject = [PFObject objectWithoutDataWithClassName:@"Profile" objectId:self.profile.objectId];
+    PFObject *followingObject = [PFObject objectWithoutDataWithClassName:@"Profile"
+                                                                objectId:self.profile.objectId];
     NSMutableArray *followingArray = [@[]mutableCopy];
     if (self.currentUserProfile.followings.count == 0)
     {
@@ -151,42 +115,56 @@
         [followingArray addObject:followingObject];
         self.currentUserProfile.followings = followingArray;
     }
-
-    PFObject *followerObject = [PFObject objectWithoutDataWithClassName:@"Profile" objectId:self.currentUserProfile.objectId];
-    NSMutableArray *followerArray = [@[]mutableCopy];
-    if (self.profile.followers.count == 0)
-    {
-        self.profile.followers = @[followerObject];
-    }
-    else
-    {
-        followerArray = [self.profile.followers mutableCopy];
-        [followerArray addObject:followerObject];
-        self.profile.followers = followerArray;
-    }
     [self.currentUserProfile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error)
     {
         if (!error)
         {
+            PFObject *followerObject = [PFObject objectWithoutDataWithClassName:@"Profile"
+                                                                       objectId:self.currentUserProfile.objectId];
+            NSMutableArray *followerArray = [@[]mutableCopy];
+            if (self.profile.followers.count == 0)
+            {
+                self.profile.followers = @[followerObject];
+            }
+            else
+            {
+                followerArray = [self.profile.followers mutableCopy];
+                [followerArray addObject:followerObject];
+                self.profile.followers = followerArray;
+            }
             [self.profile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error)
             {
                 if (!error)
                 {
-                    [self.fersCountButton setTitle:[NSString stringWithFormat:@"Fers:%lu",(unsigned long)self.profile.followers.count] forState:UIControlStateNormal];
-                 [self.followingButton setBackgroundImage:[UIImage imageNamed:@"post"] forState:UIControlStateNormal];
-                    self.followingButton.enabled = NO;
+                    [self.fersCountButton setTitle:[NSString stringWithFormat:@"Fers:%lu",(unsigned long)self.profile.followers.count]
+                                          forState:UIControlStateNormal];
+                    [self disableFollowingButton];
                 }
                 else
                 {
-                    [self errorAlertWindow:error.localizedDescription];
+                    [self error:error];
                 }
             }];
         }
         else
         {
-            [self errorAlertWindow:error.localizedDescription];
+            [self error:error];
         }
     }];
+}
+
+//MARK: collectionview delegate
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
+{
+    return self.collectionViewArray.count;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    PhotoCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cell" forIndexPath:indexPath];
+    NSData *data = [self.collectionViewArray[indexPath.item] imageData];
+    cell.imageView.image = [UIImage imageWithData:data];
+    return cell;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
@@ -199,16 +177,19 @@
 {
     RootDetailViewController *rdvc = segue.destinationViewController;
     rdvc.photo = sender;
-
 }
 
--(void)errorAlertWindow:(NSString *)message
+//MARK: UIAlert
+- (void)error:(NSError *)error
 {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Ahtung!" message:message preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *okButton = [UIAlertAction actionWithTitle:@"😭 Mkay..." style:UIAlertActionStyleDefault handler:nil];
-    [alert addAction:okButton];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error"
+                                                                   message:error.localizedDescription
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *action = [UIAlertAction actionWithTitle:@"OK"
+                                                     style:UIAlertActionStyleDefault
+                                                   handler:nil];
+    [alert addAction:action];
     [self presentViewController:alert animated:YES completion:nil];
 }
-
 
 @end

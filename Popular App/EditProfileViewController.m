@@ -8,7 +8,6 @@
 
 #import "EditProfileViewController.h"
 
-
 @interface EditProfileViewController () <UITextFieldDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 
 @property (weak, nonatomic) IBOutlet UITextField *nameTextField;
@@ -92,6 +91,7 @@
     [picker dismissViewControllerAnimated:YES completion:nil];
 }
 
+//TODO: name is not updated
 //MARK: confirm all the changes
 - (IBAction)confirmEditingOnButtonPressed:(UIButton *)sender
 {

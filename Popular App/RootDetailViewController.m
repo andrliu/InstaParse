@@ -39,7 +39,8 @@
     {
         self.photo.profilesLiked = [NSArray array];
     }
-    [self.likeButton setTitle:[NSString stringWithFormat:@"Liked: %lu", (unsigned long)self.photo.profilesLiked.count] forState:UIControlStateNormal];
+    [self.likeButton setTitle:[NSString stringWithFormat:@"Liked: %lu", (unsigned long)self.photo.profilesLiked.count]
+                     forState:UIControlStateNormal];
     if ([self isLikedByCurrentUser])
     {
         self.likeImageView.image = [UIImage imageNamed:@"like"];
@@ -62,7 +63,8 @@
                 if (!error)
                 {
                     NSString *count = [NSString stringWithFormat:@"Liked: %lu", (unsigned long)self.photo.profilesLiked.count];
-                    [self.likeButton setTitle:count forState:UIControlStateNormal];
+                    [self.likeButton setTitle:count
+                                     forState:UIControlStateNormal];
                     self.likeImageView.image = [UIImage imageNamed:@"unlike"];
                 }
                 else
@@ -79,7 +81,8 @@
                 if (!error)
                 {
                     NSString *count = [NSString stringWithFormat:@"Liked: %lu", (unsigned long)self.photo.profilesLiked.count];
-                    [self.likeButton setTitle:count forState:UIControlStateNormal];
+                    [self.likeButton setTitle:count
+                                     forState:UIControlStateNormal];
                     self.likeImageView.image = [UIImage imageNamed:@"like"];
                 }
                 else

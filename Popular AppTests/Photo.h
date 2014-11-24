@@ -27,6 +27,6 @@ typedef void(^searchPhotoByTagBlock)(NSArray *objects, NSError *error);
 
 + (void) sortByDescending:(NSString *)reuqest withLimit:(int)number Completion:(sortPhotoBlock)complete;
 
-+ (void) searchPhotoByKey:(NSString *)key equalTo:(NSString *)text Completion:(searchPhotoByTagBlock)complete;
++ (void) searchPhotoByKey:(NSString *)key equalTo:(id)object Completion:(searchPhotoByTagBlock)complete;
 
 @end

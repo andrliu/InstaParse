@@ -47,10 +47,10 @@
         }];
 }
 
-+ (void) searchPhotoByKey:(NSString *)key equalTo:(NSString *)text Completion:(searchPhotoByTagBlock)complete
++ (void) searchPhotoByKey:(NSString *)key equalTo:(id)object Completion:(searchPhotoByTagBlock)complete
 {
     PFQuery *query = [self query];
-    [query whereKey:key equalTo:text];
+    [query whereKey:key equalTo:object];
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
         {
             if (!error)
