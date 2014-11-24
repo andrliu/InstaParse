@@ -14,8 +14,6 @@
 #import <Parse/Parse.h>
 #import <FacebookSDK/FacebookSDK.h>
 #import <ParseUI/ParseUI.h>
-#import "User.h"
-#import "Profile.h"
 #import "Photo.h"
 
 @interface RootViewController () <UICollectionViewDataSource, UICollectionViewDelegate, PFLogInViewControllerDelegate, PFSignUpViewControllerDelegate>
@@ -57,22 +55,11 @@
         {
             self.collectionViewArray = self.tagPhotoArray;
             [self.navigationItem.titleView setHidden:YES];
+            [self.collectionView reloadData];
         }
         else
         {
-            [Photo sortByDescending:@"createdAt" withLimit:16 Completion:^(NSArray *objects, NSError *error) {
-                if (!error)
-                {
-                    self.collectionViewArray = objects;
-                    [self.collectionView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
-                    [self.collectionView reloadData];
-                }
-                else
-                {
-                    [self error:error];
-                }
-
-            }];
+            [self reloadCollectionViewBy:@"createdAt"];
         }
     }
 }
@@ -107,6 +94,7 @@
     [self.navigationController popViewControllerAnimated:YES];
 }
 
+//MARK: PFSignUpViewController delegate
 - (BOOL)signUpViewController:(PFSignUpViewController *)signUpController shouldBeginSignUp:(NSDictionary *)info
 {
     BOOL informationComplete = YES;
@@ -130,7 +118,6 @@
     return informationComplete;
 }
 
-//MARK: PFSignUpViewController delegate
 - (void)signUpViewController:(PFSignUpViewController *)signUpController didSignUpUser:(PFUser *)user
 {
     Profile *profile = [Profile object];
@@ -169,7 +156,7 @@
     [self.navigationController popViewControllerAnimated:YES];
 }
 
-//MARK: CollectionView delegate
+//MARK: collectionView delegate
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
     return self.collectionViewArray.count;
@@ -184,43 +171,39 @@
     return cell;
 }
 
+//MARK: switch collectionview
 - (IBAction)onSegmentedControlTapped:(UISegmentedControl *)sender
 {
     if (self.segmentControl.selectedSegmentIndex == 0)
     {
-        [Photo sortByDescending:@"createdAt" withLimit:16 Completion:^(NSArray *objects, NSError *error) {
-            if (!error)
-            {
-                self.collectionViewArray = objects;
-                [self.collectionView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
-                [self.collectionView reloadData];
-            }
-            else
-            {
-                [self error:error];
-            }
-
-        }];
+        [self reloadCollectionViewBy:@"createdAt"];
     }
     else
     {
-        [Photo sortByDescending:@"likeCount" withLimit:16 Completion:^(NSArray *objects, NSError *error) {
-            if (!error)
-            {
-                self.collectionViewArray = objects;
-                [self.collectionView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
-                [self.collectionView reloadData];
-            }
-            else
-            {
-                [self error:error];
-            }
-
-        }];
+        [self reloadCollectionViewBy:@"likeCount"];
     }
 }
 
--(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+//MARK: custom reload method
+- (void)reloadCollectionViewBy:(NSString *)request
+{
+    [Photo sortByDescending:request withLimit:10 Completion:^(NSArray *objects, NSError *error)
+     {
+         if (!error)
+         {
+             self.collectionViewArray = objects;
+             [self.collectionView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+             [self.collectionView reloadData];
+         }
+         else
+         {
+             [self error:error];
+         }
+
+     }];
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
     RootDetailViewController *rdvc = segue.destinationViewController;
     NSIndexPath *indexPath = [self.collectionView indexPathForCell:sender];

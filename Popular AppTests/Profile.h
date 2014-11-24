@@ -8,9 +8,6 @@
 
 #import <Parse/Parse.h>
 #import <Parse/PFObject+Subclass.h>
-#import "Photo.h"
-
-typedef void(^createProfileBlock)(BOOL succeeded, NSError *error);
 
 @interface Profile : PFObject  <PFSubclassing>
 
@@ -23,8 +20,5 @@ typedef void(^createProfileBlock)(BOOL succeeded, NSError *error);
 @property (nonatomic, strong) NSArray *followings;
 
 - (void)setNameAndCanonicalName:(NSString *)username;
-
-
-
 
 @end

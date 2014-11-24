@@ -27,103 +27,86 @@
 {
     [super viewDidLoad];
     self.commentTextField.delegate = self;
-
     PFUser *currentUser = [PFUser currentUser];
     self.currentProfile = currentUser[@"profile"];
-
     self.imageView.image = [UIImage imageWithData:self.photo.imageData];
+}
 
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
     if (self.photo.profilesLiked.count == 0)
     {
         self.photo.profilesLiked = [NSArray array];
     }
-    if ([self checkForLike])
+    [self.likeButton setTitle:[NSString stringWithFormat:@"Liked: %lu", (unsigned long)self.photo.profilesLiked.count] forState:UIControlStateNormal];
+    if ([self isLikedByCurrentUser])
     {
-        [self.likeButton setTitle:[NSString stringWithFormat:@"Liked: %lu", (unsigned long)self.photo.profilesLiked.count] forState:UIControlStateNormal];
         self.likeImageView.image = [UIImage imageNamed:@"like"];
     }
     else
     {
-        [self.likeButton setTitle:[NSString stringWithFormat:@"Likes: %lu", (unsigned long)self.photo.profilesLiked.count] forState:UIControlStateNormal];
         self.likeImageView.image = [UIImage imageNamed:@"unlike"];
     }
-    [self loadCommentsByPhoto:self.photo];
+    [self reloadComment];
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
-    return self.commentArray.count;
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell" forIndexPath:indexPath];
-
-    Comment *comment = self.commentArray[indexPath.row];
-    cell.textLabel.text = comment.text;
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"MMM dd, yyyy @ HH:mm:ss"];
-    NSString *date = [dateFormatter stringFromDate:comment.createdAt];
-
-    PFQuery *profileQuery = [Profile query];
-//    [profileQuery includeKey:comment.profileID];
-    [profileQuery getObjectInBackgroundWithId:comment.profileID
-                                        block:^(PFObject *object, NSError *error)
-    {
-        Profile *commentProfile = (Profile *)object;
-
-        cell.detailTextLabel.text = [NSString stringWithFormat:@"by %@ on %@", commentProfile.name, date];
-    }];
-    return cell;
-}
-
-- (BOOL)textFieldShouldReturn:(UITextField *)textField
-{
-    [textField resignFirstResponder];
-    return YES;
-}
-
-//MARK: Actions
-
+//MARK: Like actions
 - (IBAction)onLikeButtonPressed:(UIButton *)sender
 {
-     if ([self checkForLike])
+    if ([self isLikedByCurrentUser])
     {
-        NSMutableArray *likedArray = [self.photo.profilesLiked mutableCopy];
-        [likedArray removeObject:self.currentProfile.objectId];
-        self.photo.profilesLiked = likedArray;
-        NSString *count = [NSString stringWithFormat:@"Liked: %lu", (unsigned long)self.photo.profilesLiked.count];
-        self.photo.likeCount = [NSNumber numberWithInt:(int)self.photo.profilesLiked.count];
-        self.likeImageView.image = [UIImage imageNamed:@"like"];
-        [self.likeButton setTitle:count forState:UIControlStateNormal];
+        [self removeLikeCountIfUser:YES];
         [self.photo saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error)
-         {
-             if (error)
-             {
-                 [self error:error];
-             }
-         }];
+            {
+                if (!error)
+                {
+                    NSString *count = [NSString stringWithFormat:@"Liked: %lu", (unsigned long)self.photo.profilesLiked.count];
+                    [self.likeButton setTitle:count forState:UIControlStateNormal];
+                    self.likeImageView.image = [UIImage imageNamed:@"unlike"];
+                }
+                else
+                {
+                    [self error:error];
+                }
+            }];
     }
     else
     {
-        NSMutableArray *likedArray = [self.photo.profilesLiked mutableCopy];
-        [likedArray addObject:self.currentProfile.objectId];
-        self.photo.profilesLiked = likedArray;
-        NSString *count = [NSString stringWithFormat:@"Liked: %lu", (unsigned long)self.photo.profilesLiked.count];
-        self.photo.likeCount = [NSNumber numberWithInt:(int)self.photo.profilesLiked.count];
-        self.likeImageView.image = [UIImage imageNamed:@"unlike"];
-        [self.likeButton setTitle:count forState:UIControlStateNormal];
+        [self removeLikeCountIfUser:NO];
         [self.photo saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error)
-         {
-             if (error)
-             {
-                 [self error:error];
-             }
-         }];
+            {
+                if (!error)
+                {
+                    NSString *count = [NSString stringWithFormat:@"Liked: %lu", (unsigned long)self.photo.profilesLiked.count];
+                    [self.likeButton setTitle:count forState:UIControlStateNormal];
+                    self.likeImageView.image = [UIImage imageNamed:@"like"];
+                }
+                else
+                {
+                    [self error:error];
+                }
+            }];
     }
 }
 
--(BOOL)checkForLike
+- (void)removeLikeCountIfUser:(BOOL)like
+{
+    self.photo.likeCount = [NSNumber numberWithInt:(int)self.photo.profilesLiked.count];
+    NSMutableArray *likedArray = [self.photo.profilesLiked mutableCopy];
+    if (like)
+    {
+        [likedArray removeObject:self.currentProfile.objectId];
+    }
+    else
+    {
+        [likedArray addObject:self.currentProfile.objectId];
+    }
+    self.photo.profilesLiked = likedArray;
+    self.photo.likeCount = [NSNumber numberWithInt:(int)self.photo.profilesLiked.count];
+}
+
+- (BOOL)isLikedByCurrentUser
 {
     BOOL isLiked = NO;
     for (int i=0; i<self.photo.profilesLiked.count; i++)
@@ -137,41 +120,47 @@
     return isLiked;
 }
 
-- (IBAction)commentTextField:(UITextField *)sender
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    if (![self.commentTextField.text isEqual:@""])
+    [textField resignFirstResponder];
+    return YES;
+}
+
+- (IBAction)commentTextField:(UITextField *)textField
+{
+    if (![textField.text isEqual:@""])
     {
-        Comment *comment = [Comment object];
-        comment.text = sender.text;
-        comment.photo = self.photo;
-        comment.profileID = [[PFUser currentUser][@"profile"] objectId];
-        [comment saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error)
+        [Comment storeCommentWith:textField.text withPhoto:self.photo withUserID:[[PFUser currentUser][@"profile"] objectId] Completion:^(BOOL succeeded, NSError *error)
         {
-            [self loadCommentsByPhoto:self.photo];
+            if (!error)
+            {
+                [self reloadComment];
+            }
+            else
+            {
+                [self error:error];
+            }
         }];
-        self.commentTextField.text = @"";
+        textField.text = @"";
     }
 }
 
-- (void)loadCommentsByPhoto:(Photo *)photo
+//MARK: custom reload method
+- (void)reloadComment
 {
-    PFQuery *commentQuery = [Comment query];
-    [commentQuery whereKey:@"photo" equalTo:photo];
-    [commentQuery orderByDescending:@"createdAt"];
-    [commentQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
+    [Comment getCommentFromPhoto:self.photo withLimit:10 Completion:^(NSArray *objects, NSError *error)
      {
-         if (error)
-         {
-             [self error:error];
-
-         }
-         else
+         if (!error)
          {
              self.commentArray = [objects mutableCopy];
              [self.tableView reloadData];
-
+         }
+         else
+         {
+             [self error:error];
          }
      }];
+
 }
 
 //MARK: Share the photo
@@ -202,7 +191,7 @@
 }
 
 //MARK: Email
--(void)sendEmail:(NSData *)data
+- (void)sendEmail:(NSData *)data
 {
     if([MFMailComposeViewController canSendMail])
     {
@@ -220,7 +209,7 @@
 }
 
 //MARK: Twitter
--(void) sendTwit:(NSData *)data
+- (void) sendTwit:(NSData *)data
 {
     if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
     {
@@ -241,7 +230,7 @@
 }
 
 //MARK: Report the photo
--(void)reportThePhotoEmail:(NSData *)data
+- (void)reportThePhotoEmail:(NSData *)data
 {
     if([MFMailComposeViewController canSendMail])
     {
@@ -270,6 +259,37 @@
     {
         [self error:error];
     }
+}
+
+//MARK: tableview delegate
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return self.commentArray.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell" forIndexPath:indexPath];
+    Comment *comment = self.commentArray[indexPath.row];
+    cell.textLabel.text = comment.text;
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"MMM dd, yyyy @ HH:mm:ss"];
+    NSString *date = [dateFormatter stringFromDate:comment.createdAt];
+    PFQuery *profileQuery = [Profile query];
+    [profileQuery getObjectInBackgroundWithId:comment.profileID
+                                        block:^(PFObject *object, NSError *error)
+                                {
+                                    if (!error)
+                                    {
+                                        Profile *commentByProfile = (Profile *)object;
+                                        cell.detailTextLabel.text = [NSString stringWithFormat:@"by %@ on %@", commentByProfile.name, date];
+                                    }
+                                    else
+                                    {
+                                        [self error:error];
+                                    }
+                                }];
+    return cell;
 }
 
 //MARK: UIAlert

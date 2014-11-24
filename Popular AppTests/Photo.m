@@ -29,26 +29,9 @@
     return @"Photo";
 }
 
-- (void)saveInBackgroundWithCompletion:(savePhotoBlock)complete
-{
-    Photo *photo = [Photo object];
-    [photo saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error)
-     {
-         if (!error)
-         {
-             complete(YES,nil);
-         }
-         else
-         {
-             complete(NO,error);
-         }
-     }];
-}
-
 + (void) sortByDescending:(NSString *)reuqest withLimit:(int)number Completion:(sortPhotoBlock)complete
 {
     PFQuery *query = [self query];
-    [query includeKey:reuqest];
     [query orderByDescending:reuqest];
     query.limit = number;
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)

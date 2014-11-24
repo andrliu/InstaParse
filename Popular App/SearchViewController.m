@@ -11,7 +11,6 @@
 #import "SearchDetailViewController.h"
 #import <Parse/Parse.h>
 #import "Tag.h"
-#import "Profile.h"
 
 @interface SearchViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
 @property (strong, nonatomic) IBOutlet UITableView *tableView;
@@ -21,7 +20,6 @@
 @end
 
 @implementation SearchViewController
-
 
 //MARK: app load sequence
 - (void)viewDidLoad
@@ -40,7 +38,6 @@
 //MARK: delegate methods
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-
     return self.tableViewArray.count;
 }
 
@@ -51,31 +48,16 @@
     if (self.segmentedControl.selectedSegmentIndex == 0)
     {
         Tag *tag = self.tableViewArray[indexPath.row];
-//        PFObject *tag = self.tableViewArray[indexPath.row];
-//        NSString *text = tag[@"tag"];
         cell.textLabel.text = tag.tag;
     }
     else
     {
-
         Profile *profile = self.tableViewArray[indexPath.row];
-//        PFObject *profile = self.tableViewArray[indexPath.row];
-//        NSString *text = profile[@"name"];
-//        NSString *detail = profile[@"description"];
         cell.textLabel.text = profile.name;
         cell.detailTextLabel.text = profile.description;
-        if (profile.avatarData)
-        {
-            UIImage *image = [UIImage imageWithData:profile.avatarData];
-            cell.imageView.image = image;
-        }
-        else
-        {
-            UIImage *image = [UIImage imageNamed:@"avatar"];
-            cell.imageView.image = image;
-        }
+        UIImage *image = [UIImage imageWithData:profile.avatarData];
+        cell.imageView.image = image;
     }
-
     return cell;
 }
 
@@ -84,21 +66,6 @@
     if (self.segmentedControl.selectedSegmentIndex == 0)
     {
         Tag *tag = self.tableViewArray[indexPath.row];
-//        PFQuery *query = [Tag query];
-//        [query whereKey:@"tag" equalTo:tag];
-//        [query includeKey:@"photos"];
-//        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
-//        {
-//            if (error)
-//            {
-//                [self errorAlertWindow:error.localizedDescription];
-//            }
-//            else
-//            {
-////                NSArray *tagPhotoArray = objects;
-//            [self performSegueWithIdentifier:@"tagSegue" sender:objects];
-//            }
-//        }];
         PFQuery *query = [Photo query];
         [query whereKey:@"tag" equalTo:tag.tag];
         [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
@@ -176,7 +143,7 @@
      {
          if (error)
          {
-             [self errorAlertWindow:error.localizedDescription];
+             [self error:error];
          }
          else
          {
@@ -191,30 +158,32 @@
 
 }
 
-
--(void)errorAlertWindow:(NSString *)message
-{
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Ahtung!" message:message preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *okButton = [UIAlertAction actionWithTitle:@"😭 Mkay..." style:UIAlertActionStyleDefault handler:nil];
-    [alert addAction:okButton];
-    [self presentViewController:alert animated:YES completion:nil];
-}
-
-
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
     if ([segue.identifier isEqualToString:@"tagSegue"])
     {
-        RootViewController *rootVC = segue.destinationViewController;
-        rootVC.tagPhotoArray = sender;
+        RootViewController *rvc = segue.destinationViewController;
+        rvc.tagPhotoArray = sender;
     }
     else if ([segue.identifier isEqualToString:@"profileSegue"])
     {
-        SearchDetailViewController *detailVC = segue.destinationViewController;
-        detailVC.profile = sender;
-
+        SearchDetailViewController *sdvc = segue.destinationViewController;
+        sdvc.profile = sender;
     }
-
 }
+
+//MARK: UIAlert
+- (void)error:(NSError *)error
+{
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error"
+                                                                   message:error.localizedDescription
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *action = [UIAlertAction actionWithTitle:@"OK"
+                                                     style:UIAlertActionStyleDefault
+                                                   handler:nil];
+    [alert addAction:action];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
 
 @end

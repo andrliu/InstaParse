@@ -12,7 +12,6 @@
 
 @class Profile;
 
-typedef void(^savePhotoBlock)(BOOL succeeded, NSError *error);
 typedef void(^sortPhotoBlock)(NSArray *objects, NSError *error);
 
 @interface Photo : PFObject  <PFSubclassing>
@@ -24,8 +23,6 @@ typedef void(^sortPhotoBlock)(NSArray *objects, NSError *error);
 @property (nonatomic, strong) NSNumber *likeCount;
 @property (nonatomic, strong) NSArray *profilesLiked;
 @property (nonatomic, strong) NSString *tag;
-
-- (void) saveInBackgroundWithCompletion:(savePhotoBlock)complete;
 
 + (void) sortByDescending:(NSString *)reuqest withLimit:(int)number Completion:(sortPhotoBlock)complete;
 

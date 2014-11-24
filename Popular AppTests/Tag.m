@@ -23,20 +23,4 @@
     return @"Tag";
 }
 
-- (void)saveInBackgroundWithCompletion:(saveTagBlock)complete
-{
-    Tag *tag = [Tag object];
-    [tag saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error)
-    {
-        if (!error)
-        {
-            complete(YES,nil);
-        }
-        else
-        {
-            complete(NO,error);
-        }
-    }];
-}
-
 @end
