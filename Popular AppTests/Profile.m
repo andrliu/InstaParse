@@ -22,6 +22,16 @@
 @dynamic followers;
 @dynamic followings;
 
++ (void)load
+{
+    [self registerSubclass];
+}
+
++ (NSString *)parseClassName
+{
+    return @"Profile";
+}
+
 - (void)setNameAndCanonicalName:(NSString *)username
 {
     self.name = username;
@@ -32,14 +42,22 @@
     self.avatarData = imageData;
 }
 
-+ (void)load
++ (void) searchProfilesWithSearchText:(NSString *)searchText withOrderByKey:(NSString *)orderKey Completion:(searchProfileBlock)complete
 {
-    [self registerSubclass];
-}
-
-+ (NSString *)parseClassName
-{
-    return @"Profile";
+    PFQuery *query = [self query];
+    [query whereKey:orderKey hasPrefix:[searchText lowercaseString]];
+    [query orderByAscending:orderKey];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
+     {
+         if (!error)
+         {
+             complete(objects,nil);
+         }
+         else
+         {
+             complete(nil,error);
+         }
+     }];
 }
 
 @end

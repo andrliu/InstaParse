@@ -15,27 +15,99 @@
 @interface SearchViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
 @property (strong, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
 @property NSArray *tableViewArray;
 
 @end
 
 @implementation SearchViewController
 
-//MARK: app load sequence
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
-
-    //refresh on pull
-    UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
-    [refreshControl addTarget:self action:@selector(refreshDisplay:withClass:withSearchText:withOrderByKey:) forControlEvents:UIControlEventValueChanged];
-    [self.tableView addSubview:refreshControl];
-
 }
 
+//MARK: searchbar delegate
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText;
+{
+    if (searchText.length != 0)
+    {
+        [self checkSelectedSegmentIndexAndSearchWithText:searchText];
 
-//MARK: delegate methods
+    }
+    else
+    {
+        [self checkSelectedSegmentIndexAndSearchWithText:searchText];
+        [searchBar performSelector:@selector(resignFirstResponder) withObject:nil afterDelay:0.1];
+    }
+}
+
+- (void)checkSelectedSegmentIndexAndSearchWithText:(NSString *)searchText
+{
+    if (self.segmentedControl.selectedSegmentIndex == 0)
+    {
+        [self searchTagAndReloadTableViewWithSearchText:searchText withOrderByKey:@"tag"];
+    }
+    else
+    {
+        [self searchProfileAndReloadTableViewWithSearchText:searchText withOrderByKey:@"lowercaseName"];
+    }
+}
+
+-(void)searchTagAndReloadTableViewWithSearchText:(NSString *)searchText withOrderByKey:(NSString *)orderKey
+{
+    [Tag searchTagsWithSearchText:searchText withOrderByKey:orderKey Completion:^(NSArray *objects, NSError *error)
+     {
+         if (!error)
+         {
+             self.tableViewArray = objects;
+             [self.tableView reloadData];
+         }
+         else
+         {
+             [self error:error];
+         }
+     }];
+}
+
+-(void)searchProfileAndReloadTableViewWithSearchText:(NSString *)searchText withOrderByKey:(NSString *)orderKey
+{
+    [Profile searchProfilesWithSearchText:searchText withOrderByKey:orderKey Completion:^(NSArray *objects, NSError *error)
+     {
+         if (!error)
+         {
+             self.tableViewArray = objects;
+             [self.tableView reloadData];
+         }
+         else
+         {
+             [self error:error];
+         }
+     }];
+}
+
+//MARK: custom methods
+- (IBAction)segmentedControl:(UISegmentedControl *)sender
+{
+    if (sender.selectedSegmentIndex == 0)
+    {
+        [self clearTableViewAndSearchBar];
+    }
+    else
+    {
+        [self clearTableViewAndSearchBar];
+    }
+}
+
+- (void)clearTableViewAndSearchBar
+{
+    self.tableViewArray = @[];
+    [self.tableView reloadData];
+    self.searchBar.text = @"";
+    [self.searchBar resignFirstResponder];
+}
+
+//MARK: tableview delegate methods
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     return self.tableViewArray.count;
@@ -44,17 +116,18 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell" forIndexPath:indexPath];
-
     if (self.segmentedControl.selectedSegmentIndex == 0)
     {
         Tag *tag = self.tableViewArray[indexPath.row];
         cell.textLabel.text = tag.tag;
+        cell.detailTextLabel.text = nil;
+        cell.imageView.image = nil;
     }
     else
     {
         Profile *profile = self.tableViewArray[indexPath.row];
         cell.textLabel.text = profile.name;
-        cell.detailTextLabel.text = profile.description;
+        cell.detailTextLabel.text = profile.memo;
         UIImage *image = [UIImage imageWithData:profile.avatarData];
         cell.imageView.image = image;
     }
@@ -66,96 +139,22 @@
     if (self.segmentedControl.selectedSegmentIndex == 0)
     {
         Tag *tag = self.tableViewArray[indexPath.row];
-        PFQuery *query = [Photo query];
-        [query whereKey:@"tag" equalTo:tag.tag];
-        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
-        {
-            [self performSegueWithIdentifier:@"tagSegue" sender:objects];
+        [Photo searchPhotoByKey:@"tag" equalTo:tag.tag Completion:^(NSArray *objects, NSError *error) {
+            if (!error)
+            {
+                [self performSegueWithIdentifier:@"tagSegue" sender:objects];
+            }
+            else
+            {
+                [self error:error];
+            }
         }];
-
     }
     else
     {
         Profile *profile = self.tableViewArray[indexPath.row];
         [self performSegueWithIdentifier:@"profileSegue" sender:profile];
-
     }
-
-}
-
-- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText;
-{
-    //    searchText
-
-    if (searchText.length != 0)
-    {
-        if (self.segmentedControl.selectedSegmentIndex == 0)
-        {
-            [self refreshDisplay:nil withClass:@"Tag" withSearchText:searchText withOrderByKey:@"tag"];
-        }
-        else
-        {
-            [self refreshDisplay:nil withClass:@"Profile" withSearchText:searchText withOrderByKey:@"lowercaseName"];
-        }
-
-    }
-    //refreshes the table view when removing the letters
-    else
-    {
-        [searchBar resignFirstResponder];
-        if (self.segmentedControl.selectedSegmentIndex == 0)
-        {
-            [self refreshDisplay:nil withClass:@"Tag" withSearchText:searchText withOrderByKey:@"tag"];
-        }
-        else
-        {
-            [self refreshDisplay:nil withClass:@"Profile" withSearchText:searchText withOrderByKey:@"lowercaseName"];
-        }
-    }
-
-    [self.tableView reloadData];
-}
-
-//MARK: custom methods
-- (IBAction)segmentedControl:(UISegmentedControl *)sender
-{
-    if (sender.selectedSegmentIndex == 0)
-    {
-        self.tableViewArray = @[];
-        [self.tableView reloadData];
-    }
-    else
-    {
-        self.tableViewArray = @[];
-        [self.tableView reloadData];
-    }
-}
-
--(void)refreshDisplay:(UIRefreshControl *)refreshControl withClass:(NSString *)class withSearchText:(NSString *)searchText withOrderByKey:(NSString *)orderKey
-{
-//    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%@ BEGINSWITH %@",orderKey, searchText];
-//    PFQuery *query = [PFQuery queryWithClassName:class predicate:predicate]; //crash point
-    PFQuery *query = [PFQuery queryWithClassName:class];
-
-    [query whereKey:orderKey hasPrefix:[searchText lowercaseString]]; //parse query format, better than predicate
-    [query orderByAscending:orderKey]; //sort query
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
-     {
-         if (error)
-         {
-             [self error:error];
-         }
-         else
-         {
-             self.tableViewArray = objects;
-             [self.tableView reloadData];
-         }
-
-         [refreshControl endRefreshing];
-
-     }];
-
-
 }
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
@@ -165,7 +164,7 @@
         RootViewController *rvc = segue.destinationViewController;
         rvc.tagPhotoArray = sender;
     }
-    else if ([segue.identifier isEqualToString:@"profileSegue"])
+    else
     {
         SearchDetailViewController *sdvc = segue.destinationViewController;
         sdvc.profile = sender;

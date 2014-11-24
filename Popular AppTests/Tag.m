@@ -23,4 +23,22 @@
     return @"Tag";
 }
 
++ (void) searchTagsWithSearchText:(NSString *)searchText withOrderByKey:(NSString *)orderKey Completion:(searchTagBlock)complete
+{
+    PFQuery *query = [self query];
+    [query whereKey:orderKey hasPrefix:[searchText lowercaseString]];
+    [query orderByAscending:orderKey];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
+    {
+        if (!error)
+        {
+            complete(objects,nil);
+        }
+        else
+        {
+            complete(nil,error);
+        }
+    }];
+}
+
 @end

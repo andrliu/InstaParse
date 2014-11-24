@@ -9,6 +9,8 @@
 #import <Parse/Parse.h>
 #import <Parse/PFObject+Subclass.h>
 
+typedef void(^searchProfileBlock)(NSArray *objects, NSError *error);
+
 @interface Profile : PFObject  <PFSubclassing>
 
 @property (nonatomic, strong) NSString *objectId;
@@ -20,5 +22,7 @@
 @property (nonatomic, strong) NSArray *followings;
 
 - (void)setNameAndCanonicalName:(NSString *)username;
+
++ (void) searchProfilesWithSearchText:(NSString *)searchText withOrderByKey:(NSString *)orderKey Completion:(searchProfileBlock)complete;
 
 @end

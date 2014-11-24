@@ -13,6 +13,7 @@
 @class Profile;
 
 typedef void(^sortPhotoBlock)(NSArray *objects, NSError *error);
+typedef void(^searchPhotoByTagBlock)(NSArray *objects, NSError *error);
 
 @interface Photo : PFObject  <PFSubclassing>
 
@@ -25,5 +26,7 @@ typedef void(^sortPhotoBlock)(NSArray *objects, NSError *error);
 @property (nonatomic, strong) NSString *tag;
 
 + (void) sortByDescending:(NSString *)reuqest withLimit:(int)number Completion:(sortPhotoBlock)complete;
+
++ (void) searchPhotoByKey:(NSString *)key equalTo:(NSString *)text Completion:(searchPhotoByTagBlock)complete;
 
 @end

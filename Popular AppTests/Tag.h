@@ -10,9 +10,13 @@
 #import <Parse/PFObject+Subclass.h>
 #import "Photo.h"
 
+typedef void(^searchTagBlock)(NSArray *objects, NSError *error);
+
 @interface Tag : PFObject  <PFSubclassing>
 
 @property (nonatomic, strong) NSString *tag;
 @property (nonatomic, strong) NSArray *photosOfTag;
+
++ (void) searchTagsWithSearchText:(NSString *)searchText withOrderByKey:(NSString *)orderKey Completion:(searchTagBlock)complete;
 
 @end

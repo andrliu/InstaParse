@@ -35,16 +35,33 @@
     [query orderByDescending:reuqest];
     query.limit = number;
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
-     {
-         if (!error)
-         {
-             complete(objects,nil);
-         }
-         else
-         {
-             complete(nil,error);
-         }
-     }];
+        {
+            if (!error)
+            {
+                complete(objects,nil);
+            }
+            else
+            {
+                complete(nil,error);
+            }
+        }];
+}
+
++ (void) searchPhotoByKey:(NSString *)key equalTo:(NSString *)text Completion:(searchPhotoByTagBlock)complete
+{
+    PFQuery *query = [self query];
+    [query whereKey:key equalTo:text];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
+        {
+            if (!error)
+            {
+                complete(objects,nil);
+            }
+            else
+            {
+                complete(nil,error);
+            }
+        }];
 }
 
 @end
