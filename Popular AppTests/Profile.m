@@ -8,10 +8,6 @@
 
 #import "Profile.h"
 
-@interface Profile (PrimitiveAccessors)
-
-@end
-
 @implementation Profile
 
 @dynamic objectId;
